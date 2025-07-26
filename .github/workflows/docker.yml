@@ -1,12 +1,12 @@
-name: Build & Push Docker Image
+name: Build, Push & Deploy Flask App
 
 on:
   push:
     branches:
-      - main  # or master, depending on your branch
+      - main
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
@@ -28,3 +28,15 @@ jobs:
           context: .
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/flask-ec2-cicd:latest
+
+      - name: Deploy to EC2
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          script: |
+            docker pull ${{ secrets.DOCKER_USERNAME }}/flask-ec2-cicd:latest
+            docker stop flaskapp || true
+            docker rm flaskapp || true
+            docker run -d -p 80:5000 --name flaskapp ${{ secrets.DOCKER_USERNAME }}/flask-ec2-cicd:latest
