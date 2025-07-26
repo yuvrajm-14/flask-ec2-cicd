@@ -1,4 +1,4 @@
-name: Build, Push & Deploy Flask App
+name: Build & Deploy Flask App to EC2
 
 on:
   push:
